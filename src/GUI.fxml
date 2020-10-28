@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1000.0" prefWidth="1500.0" style="-fx-background-color: #86BBD8;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI">
+    <top>
+        <HBox prefHeight="128.0" prefWidth="1500.0" style="-fx-background-color: #2F4858;" BorderPane.alignment="CENTER">
+            <VBox prefHeight="128.0" prefWidth="465.0">
+                <Label prefHeight="75.0" prefWidth="407.0" style="-fx-font-size: 30; -fx-text-fill: white; -fx-font-weight: bold;" text="Solar Car Telemetry App">
+                    <padding>
+                        <Insets left="20.0" top="40.0" />
+                    </padding>
+                    <VBox.margin>
+                        <Insets />
+                    </VBox.margin>
+                </Label>
+            </VBox>
+        </HBox>
+    </top>
+    <center>
+        <HBox prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+            <VBox fx:id="col1" prefHeight="872.0" prefWidth="750.0">
+
+            </VBox>
+            <VBox fx:id="col2" prefHeight="200.0" prefWidth="750.0">
+
+            </VBox>
+        </HBox>
+    </center>
+    <left>
+        <VBox prefHeight="872.0" prefWidth="193.0" style="-fx-background-color: #2F4858;" BorderPane.alignment="CENTER">
+            <Label prefHeight="40.0" prefWidth="193.0" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-background-color: #33658A;" text="Overview">
+                <padding>
+                    <Insets left="10.0" />
+                </padding>
+            </Label>
+            <Label fx:id="batteryTempTab" onMouseClicked="#refresh" prefHeight="40.0" prefWidth="193.0" style="-fx-text-fill: white; -fx-font-weight: bold;" text="Battery Temperature">
+                <padding>
+                    <Insets left="10.0" />
+                </padding>
+            </Label>
+            <Label prefHeight="40.0" prefWidth="193.0" style="-fx-text-fill: white; -fx-font-weight: bold;" text="Battery Voltage">
+                <padding>
+                    <Insets left="10.0" />
+                </padding>
+            </Label>
+            <Label prefHeight="40.0" prefWidth="193.0" style="-fx-text-fill: white; -fx-font-weight: bold;" text="Car Speed">
+                <padding>
+                    <Insets left="10.0" />
+                </padding>
+            </Label>
+        </VBox>
+    </left>
+</BorderPane>
