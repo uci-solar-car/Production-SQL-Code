@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class WirelessCom {
     private SerialPort port;
@@ -41,18 +43,15 @@ public class WirelessCom {
     }
 
     // close port when done
-    public void closePort(){
+    public void closePort() {
         port.closePort();
     }
 
     // waits 'ms' milliseconds
-    public static void delay(int ms){
-        try
-        {
+    public static void delay(int ms) {
+        try {
             Thread.sleep(ms);
-        }
-        catch(InterruptedException ex)
-        {
+        } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
     }
@@ -60,57 +59,82 @@ public class WirelessCom {
     // hmmm idk how we want to add a stop mechanism
     // can probably check console input for stop command
 
-    public void receiveData() throws IOException{
-        while (true){
+    public void receiveData() throws IOException {
+        while (true) {
 
             // stores the msg char by char
             String msg = "";
 
             //System.out.println(inputstream.available());
 
-            if (inputstream.available() > 0){
+            if (inputstream.available() > 0) {
                 // prints & uploads message to database
-                try
-                {
-                    while(inputstream.available() > 0)
-                        msg += (char)inputstream.read();
+                try {
+                    while (inputstream.available() > 0)
+                        msg += (char) inputstream.read();
                     inputstream.close();
 
-                    uploadData(msg);
-                } catch (Exception e) { e.printStackTrace(); }
+                    ArrayList<Integer> ids = uploadData(msg);
 
-                // informing arduino that data has been received
-                // can turn this into an ack packet
-                // later imitate ack system in computer networks
-                outputstream.write("received".getBytes());
+                    // send back a list of all the ids received
+                    outputstream.write(generateReturnMsg(ids).getBytes());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-            WirelessCom.delay(3000);
-
+            WirelessCom.delay(5000); // read every minute (later)
         }
     }
 
+    private boolean validateChecksum(String data) {
+        // strEntries[6] is checksum
+        return true; // placeholder
+    }
 
-    public void testRun() throws IOException{
+    private int generateChecksum(String msg){
+        return 1; // placeholder
+    }
+
+    private String generateReturnMsg(ArrayList<Integer> ids){
+        if (ids.size() == 0){
+            return "";
+        }
+
+        String returnMsg = Integer.toString(ids.size());
+
+        Iterator<Integer> iter = ids.iterator();
+        while(iter.hasNext()){
+            returnMsg += "," + iter.next();
+        }
+
+        returnMsg += "," + generateChecksum(returnMsg);
+
+        return returnMsg;
+    }
+
+    // purely for testing
+    public void testRun() throws IOException {
         // test without serial port
         uploadData("1,1,1,0,1\n1,2,3,0,1");
 
         // looks for a single data entry from serial port
-        while (true){
+        while (true) {
             // if it keeps coming out as 0's then no data is being received
             System.out.println(inputstream.available());
 
-            if (inputstream.available() > 0){
+            if (inputstream.available() > 0) {
                 String msg = "";
                 // prints message
-                try
-                {
-                    while(inputstream.available() > 0)
-                        msg += (char)inputstream.read();
+                try {
+                    while (inputstream.available() > 0)
+                        msg += (char) inputstream.read();
                     inputstream.close();
 
                     System.out.println("msg: " + msg);
                     uploadData(msg);
-                } catch (Exception e) { e.printStackTrace(); }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 // informing arduino that data has been received
                 // can turn this into an ack packet
@@ -126,36 +150,79 @@ public class WirelessCom {
 
 
     // returns whether or not the string was properly formatted for upload
-    private boolean uploadData(String data){
-        try{
-            String[] rows = data.split("\n");
+    // change this to return the list of ids (integers?)
+    // Num_rows_being_sent, rowID, battery_temperature, Battery_voltage_out, Battery_charge, speed, driveNum; checksum
+    //                         0       1                        2                      3       4,     5            last
+    // returns the ids received
+    private ArrayList<Integer> uploadData(String data) {
+        // split data into entries by new line \n
+        String[] rows = data.replace("\n", "").split(";");
 
-            // iterates through the rows and enters each one
-            for (int r = 0; r < rows.length; ++r){
-                System.out.println("Parsing row from Serial Port: " + rows[r]);
+        ArrayList<Integer> ids = new ArrayList(); // records ids successfully received
 
-                String[] strEntries = rows[r].split(",");
+        if (rows.length < 3){ // numRows, data, checksum
+            return ids;
+        }
 
-                if (strEntries.length != 5){
-                    throw new Exception("incorrect data-entry format: Length = " + strEntries.length);
+        // checksum
+        if (!validateChecksum(rows[rows.length - 1])) {
+            System.out.println("Checksum failed for data: " + data);
+            return ids;
+        }
+
+        // iterates through the data-entries to enter each one
+        for (int r = 1; r < rows.length - 1; ++r) {
+            System.out.println("Parsing row from Serial Port: " + rows[r]);
+
+            String[] strEntries = rows[r].split(",");
+
+            // Problem with entry
+            if (strEntries.length != 7) {
+                System.out.println("Incorrect entry format: " + rows[r]);
+                continue;
+            }
+
+            try{ // enter data
+                DataEntry entry = parseData(strEntries);
+
+                int check = DB.entryExists(entry.driveNum, entry.rowID);
+
+                // check db for dupe rowID
+                if (check == 0){
+                    DB.upload(entry);
                 }
-
-                // convert to array of integers
-                int[] entries = new int[strEntries.length];
-
-                for (int i = 0; i < strEntries.length; ++i){
-                    entries[i] = Integer.parseInt(strEntries[i]);
+                else if (check == -1){ // error
+                    System.out.println("error in checking-dupe, not uploaded: " + rows[r]);
+                    continue;
                 }
+                // else: exists already => record rowID to inform xbee it no longer
+                // needs to send this entry
 
-                DB.upload(entries[0], entries[1], entries[2], entries[3], entries[4]);
+                // record IDs for successful entries
+                ids.add(entry.rowID);
 
                 System.out.println("Entry - " + '"' + rows[r] + '"' + " uploaded successfully\n");
             }
-            return true;
+            catch(Exception e){
+                System.out.println("Error in entry of: " + rows[r]);
+            }
         }
-        catch (Exception e){
-            System.out.println(e);
-            return false;
-        }
+        return ids;
+    }
+
+    // parses a single row of data, returns in DataEntry format
+    private DataEntry parseData(String[] strEntries) {
+        DataEntry entry = new DataEntry();
+
+        entry.rowID = Integer.parseInt(strEntries[0]);
+        entry.batteryTemp = Float.parseFloat(strEntries[1]);
+        entry.batteryVOut = Float.parseFloat(strEntries[2]);
+        entry.speed = Integer.parseInt(strEntries[3]);
+        entry.driveNum = Integer.parseInt(strEntries[4]);
+        entry.batteryCharge = Integer.parseInt(strEntries[5]);
+        // 6 is checksum, not uploaded to db
+
+        return entry;
     }
 }
+

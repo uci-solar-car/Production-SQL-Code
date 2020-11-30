@@ -38,16 +38,17 @@ public class DB {
     }
 
     //Upload data into MySQL DB
-    public static void upload(int batteryTemp,int batteryVOut,int speed,int driveNum,int batteryCharge) {
+    public static void upload(DataEntry entry) {
         try {
             Connection con=DB.getConnection();
-            String query = "INSERT INTO Telemetry (Battery_Temperature,Battery_Voltage_Out,Speed,Drive_Number,Time_Stamp,Battery_Charge) VALUES (?,?,?,?,NOW(),?) ;";
+            String query = "INSERT INTO Telemetry (id, Battery_Temperature,Battery_Voltage_Out,Speed,Drive_Number,Time_Stamp,Battery_Charge) VALUES (?,?,?,?,?,NOW(),?) ;";
             PreparedStatement preparedStmt = con.prepareStatement(query);
-            preparedStmt.setInt(1, batteryTemp);
-            preparedStmt.setInt(2, batteryVOut);
-            preparedStmt.setInt(3, speed);
-            preparedStmt.setInt(4, driveNum);
-            preparedStmt.setInt(5, batteryCharge);
+            preparedStmt.setInt(1, entry.rowID);
+            preparedStmt.setFloat(2, entry.batteryTemp);
+            preparedStmt.setFloat(3, entry.batteryVOut);
+            preparedStmt.setInt(4, entry.speed);
+            preparedStmt.setInt(5, entry.driveNum);
+            preparedStmt.setInt(6, entry.batteryCharge);
             preparedStmt.executeUpdate();
             DB.endConnection(con);
         }
@@ -70,6 +71,28 @@ public class DB {
         catch (Exception e) {
             System.out.println(e);
         }
+    }
+
+    // returns -1 if error
+    // returns 0 if doesn't exist yet
+    public static int entryExists(int driveNum, int rowID){
+        try{
+            Connection con=DB.getConnection();
+            String query = "SELECT count(*) FROM Telemetry WHERE driveNum = ? AND id = ?";
+            PreparedStatement preparedStmt = con.prepareStatement(query);
+            preparedStmt.setString(1, Integer.toString(driveNum));
+            preparedStmt.setString(2, Integer.toString(rowID));
+            ResultSet result = preparedStmt.executeQuery();
+            DB.endConnection(con);
+
+            if (result.next()){
+                return result.getInt(1);
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+        return -1;
     }
 
     //query database and get the number of rows of data that you want from a particular drive
