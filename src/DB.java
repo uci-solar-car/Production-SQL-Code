@@ -11,8 +11,8 @@ public class DB {
     /*-----------------------------------------------------------------------------------------------------------/*
     //  NOTE: These credentials should be stored in a text file that is not in GitHub for security purposes     //
     /*----------------------------------------------------------------------------------------------------------*/
-    private static String dbUsername = "solarCar";
-    private static String dbPassword = "zot";
+    private static String dbUsername = "";
+    private static String dbPassword = "";
 
 
     //initialize a connection to MySQL DB
