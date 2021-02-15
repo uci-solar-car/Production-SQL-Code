@@ -3,8 +3,9 @@
 
 // int batteryTemp,int batteryVOut,int speed,int driveNum,int batteryCharge
 class DataEntry {
-    int batteryTemp;
-    int batteryVOut;
+    int rowID;
+    float batteryTemp;
+    float batteryVOut;
     int speed;
     int driveNum;
     int batteryCharge;
