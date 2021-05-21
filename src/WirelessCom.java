@@ -1,5 +1,5 @@
 
-import com.fazecast.jSerialComm.*;
+import com.fazecast.jSerialComm.*; // install @ https://fazecast.github.io/jSerialComm/
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,11 +14,15 @@ public class WirelessCom {
     private InputStream inputstream;
     private OutputStream outputstream;
 
+    private GUI gui; // need to call gui to update
+
     // init
-    public WirelessCom(String portName) throws IOException {
+    public WirelessCom(String portName, GUI gui) throws IOException {
+        this.gui = gui;
+
         port = SerialPort.getCommPort(portName);
 
-        System.out.println("Port Opened: " + port);
+        System.out.println("Port Retrieved: " + port);
 
         port.setComPortParameters(9600, 8, 1, 0);
 
@@ -194,6 +198,7 @@ public class WirelessCom {
                 // check db for dupe rowID
                 if (check == 0){
                     DB.upload(entry);
+                    this.gui.refresh(entry.driveNum); // currentDriveNum
                 }
                 else if (check == -1){ // error
                     System.out.println("error in checking-dupe, not uploaded: " + rows[r]);
@@ -208,6 +213,7 @@ public class WirelessCom {
                 System.out.println("Entry - " + '"' + rows[r] + '"' + " uploaded successfully (or dupe row_id)\n");
             }
             catch(Exception e){
+                System.out.println(e);
                 System.out.println("Error in entry of: " + rows[r]);
             }
         }

@@ -21,42 +21,22 @@ import java.io.IOException;
 
 public class Main {
 
-    // check available port names
-    public static void getPortNames(){
-        SerialPort[] ports = SerialPort.getCommPorts();
 
-        for (int i = 0; i < ports.length; ++i)
-        {
-            System.out.println(ports[i].getSystemPortName());
-        }
-    }
 
-    public static void testWirelessCom() throws IOException {
-        //getPortNames();
 
-    	// edit the string to reflect your serial port name
-        WirelessCom portConnection = new WirelessCom("COM3");
-
-        // vv uncomment the method you want to run or add a new one
-
-        // smaller test no loop
-        //portConnection.testRun();
-
-        // goes thru loop, sends data back and forth with serial port
-         portConnection.receiveData();
-
-        // close connection to port
-        portConnection.closePort();
-    }
 
     public static void main (String[] args) throws IOException {
         // Launch GUI
-        //GUI gui=new GUI();
-        //gui.launchGUI(args);
+        GUI gui = new GUI();
 
+        GUIThread gt = new GUIThread(gui, args);
+        gt.start();
+
+        // probably going to need threads
 
         // test wirelesscom
-        testWirelessCom();
+        WirelessComThread wct = new WirelessComThread(gui);
+        wct.start();
 
         // clean up test (Deletes entries with DriveNum == 0)
         //DB.deleteTestEntries(44);

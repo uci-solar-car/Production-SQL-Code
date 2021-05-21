@@ -2,11 +2,10 @@
 //          Developer 1: Kunal Buty                                                                          //
 /*-----------------------------------------------------------------------------------------------------------*/
 
-
 import java.sql.*;
 
 public class DB {
-    private static String dbUrl = "jdbc:mysql://localhost:3306/SolarCar?useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
+    private static String dbUrl = "jdbc:mysql://localhost:3306/SolarCar?allowPublicKeyRetrieval=true&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
 
     /*-----------------------------------------------------------------------------------------------------------/*
     //  NOTE: These credentials should be stored in a text file that is not in GitHub for security purposes     //
@@ -99,14 +98,14 @@ public class DB {
         //this will update the results array such that index results[][0]=batteryTemp, [][1]=batteryVout,[][1]=speed
         Connection con=DB.getConnection();
         Statement stmt = con.createStatement();
-        String query = "SELECT Battery_Temperature,Battery_Voltage_Out,Speed,Battery_Charge From Telemetry WHERE Drive_Number =" + driveNum +" LIMIT " + numRows +";";
+        String query = "SELECT Battery_Temperature,Battery_Voltage_Out,Speed,Battery_Charge From Telemetry WHERE Drive_Number =" + driveNum +" ORDER BY id LIMIT " + numRows +";";
         ResultSet rs = stmt.executeQuery(query);
         int i=0;
         while(rs.next()) {
-            results[i][0]=rs.getInt("Battery_Temperature");
-            results[i][1]=rs.getInt("Battery_Voltage_Out");
-            results[i][2]=rs.getInt("Speed");
-            results[i][3]=rs.getInt("Battery_Charge");
+            results[0][i]=rs.getInt("Battery_Temperature");
+            results[1][i]=rs.getInt("Battery_Voltage_Out");
+            results[2][i]=rs.getInt("Speed");
+            results[3][i]=rs.getInt("Battery_Charge");
             i++;
         }
         DB.endConnection(con);

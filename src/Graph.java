@@ -60,12 +60,12 @@ public class Graph {
 
         //get data from sql DB
         try {
-            int[][] data=new int[numPoints][4];
+            int[][] data=new int[4][numPoints];
             //Note DriveNum is hardcoded to 1 here
             DB.getData(numPoints,1,data);
             for(int i=0;i<numPoints;i++) {
-                graphData.getData().add(new XYChart.Data<>(i,data[i][column]));
-                System.out.println(data[i][0]);
+                graphData.getData().add(new XYChart.Data<>(i,data[column][i]));
+                //System.out.println(data[i][0]);
             }
         } catch (SQLException e) {
             e.printStackTrace();
