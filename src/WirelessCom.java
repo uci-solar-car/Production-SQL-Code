@@ -17,8 +17,8 @@ public class WirelessCom {
     private GUI gui; // need to call gui to update
 
     // init
-    public WirelessCom(String portName, GUI gui) throws IOException {
-        this.gui = gui;
+    public WirelessCom(String portName, GUI g) throws IOException {
+        gui = g;
 
         port = SerialPort.getCommPort(portName);
 
@@ -162,46 +162,50 @@ public class WirelessCom {
     // returns the ids received
     private ArrayList<Integer> uploadData(String data) {
         // remove \n from data, split by ;
-        String[] rows = data.replace("\n", "").split(";");
+        String[] entries = data.replace("\n", "").split("/");
 
         ArrayList<Integer> ids = new ArrayList(); // records ids successfully received
 
-        if (rows.length < 3){ // numRows, data, checksum
-            // no substantial data received
-            return ids;
-        }
+        for (int en = 0; en < entries.length; ++en)
+        {
+            String[] rowEntry = entries[en].split(";");
 
-        // validate checksum (would require resend of all data)
-        if (!validateChecksum(rows[rows.length - 1])) {
-            System.out.println("Checksum failed for data: " + data);
-            return ids;
-        }
 
-        // iterates through the data-entries to enter each one
-        // for now, only takes one row
-        for (int r = 1; r < rows.length - 1; ++r) {
-            System.out.println("Parsing row from Serial Port: " + rows[r]);
+            if (rowEntry.length < 3){ // numRows, data, checksum
+                // no substantial data received
+                return ids;
+            }
 
-            String[] strEntries = rows[r].split(",");
+            // validate checksum (would require resend of all data)
+            if (!validateChecksum(rowEntry[rowEntry.length - 1])) {
+                System.out.println("Checksum failed for data: " + entries[en]);
+                return ids;
+            }
+
+            // iterates through the data-entries to enter each one
+            // for now, only takes one row
+            System.out.println("Parsing rowEntry from Serial Port: " + entries[en]);
+
+            String[] strEntries = rowEntry[1].split(",");
 
             // Problem with entry
             if (strEntries.length != 5) {
-                System.out.println("Incorrect entry format: " + rows[r]);
+                System.out.println("Incorrect entry format: " + rowEntry[0]);
                 continue;
             }
 
             try{ // enter data
-                DataEntry entry = parseData(rows[0], strEntries);
+                DataEntry entry = this.parseData(rowEntry[0], strEntries); // id/ rest of entry
 
                 int check = DB.entryExists(entry.driveNum, entry.rowID);
 
                 // check db for dupe rowID
                 if (check == 0){
                     DB.upload(entry);
-                    this.gui.refresh(entry.driveNum); // currentDriveNum
+                    //gui.refresh(entry.driveNum); // currentDriveNum
                 }
                 else if (check == -1){ // error
-                    System.out.println("error in checking-dupe, not uploaded: " + rows[r]);
+                    System.out.println("error in checking-dupe, not uploaded: " + entries[en]);
                     continue;
                 }
                 // else: exists already => record rowID to inform xbee it no longer
@@ -210,13 +214,14 @@ public class WirelessCom {
                 // record IDs for successful entries
                 ids.add(entry.rowID);
 
-                System.out.println("Entry - " + '"' + rows[r] + '"' + " uploaded successfully (or dupe row_id)\n");
+                System.out.println("Entry - " + '"' + entries[en] + '"' + " uploaded successfully (or dupe row_id)\n");
             }
             catch(Exception e){
                 System.out.println(e);
-                System.out.println("Error in entry of: " + rows[r]);
+                System.out.println("Error in entry of: " + entries[en]);
             }
         }
+
         return ids;
     }
 

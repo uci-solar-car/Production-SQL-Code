@@ -1,16 +1,17 @@
 import java.io.InterruptedIOException;
 
 
-public class GUIThread extends Thread {
-    private GUI gui;
+public class GUIThread extends Thread implements Runnable{
+    public GUI gui;
     private String[] args;
 
-    public GUIThread(GUI gui, String[] args){
-        this.gui = gui;
+    public GUIThread(GUI g, String[] args){
+        gui = g;
         this.args = args;
     }
 
+    @Override
     public void run() {
-        this.gui.launchGUI(this.args);
+        gui.launchGUI(this.args);
     }
 }

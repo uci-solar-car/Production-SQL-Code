@@ -18,7 +18,7 @@ import java.sql.SQLException;
 public class Graph {
 
     //builds a LineChart and returns it
-    public static LineChart<Number,Number> getChart(int numPoints,String dataType) {
+    public static LineChart<Number,Number> getChart(int numPoints,String dataType, int driveNum) {
 
         String title,yAxisTitle;
         int column;
@@ -62,7 +62,7 @@ public class Graph {
         try {
             int[][] data=new int[4][numPoints];
             //Note DriveNum is hardcoded to 1 here
-            DB.getData(numPoints,1,data);
+            DB.getData(numPoints,driveNum,data);
             for(int i=0;i<numPoints;i++) {
                 graphData.getData().add(new XYChart.Data<>(i,data[column][i]));
                 //System.out.println(data[i][0]);

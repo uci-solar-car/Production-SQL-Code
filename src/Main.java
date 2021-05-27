@@ -18,19 +18,30 @@
 import com.fazecast.jSerialComm.SerialPort;
 
 import java.io.IOException;
-
-public class Main {
-
+import java.io.InterruptedIOException;
 
 
-
+public class Main{
 
     public static void main (String[] args) throws IOException {
+        /*
+        Main runnable=new Main();
+
         // Launch GUI
+        gui = new GUI();
+        a = args;
+
+        Thread t1 =new Thread(runnable);
+        t1.start();
+
+         */
+
+        // attempt 2
         GUI gui = new GUI();
 
         GUIThread gt = new GUIThread(gui, args);
         gt.start();
+
 
         // probably going to need threads
 
@@ -41,4 +52,7 @@ public class Main {
         // clean up test (Deletes entries with DriveNum == 0)
         //DB.deleteTestEntries(44);
     }
+
+
+
 }

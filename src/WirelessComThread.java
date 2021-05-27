@@ -4,10 +4,10 @@ import java.io.IOException;
 
 public class WirelessComThread extends Thread{
 
-    private GUI gui;
+    public static GUI gui;
 
-    public WirelessComThread(GUI gui){
-        this.gui = gui;
+    public WirelessComThread(GUI g){
+        gui = g;
     }
 
     // check available port names
@@ -29,7 +29,7 @@ public class WirelessComThread extends Thread{
 
             try{
                 // edit the string to reflect your serial port name
-                WirelessCom portConnection = new WirelessCom(portName, this.gui);
+                WirelessCom portConnection = new WirelessCom(portName, gui);
 
                 // goes thru loop, sends data back and forth with serial port
                 portConnection.receiveData();
